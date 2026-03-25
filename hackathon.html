@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Babcock Campus care</title>
+    <img id="logo" src="c:\Users\Eloghosa\Downloads\babcock-university-logo.jpg" alt="Babcock Logo">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #007A33, #e6f2e6);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 60px auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            color: #004d1a;
+            border-top: 5px solid #FFD700;
+        }
+
+        h2 { text-align: center; margin-bottom: 10px; color: #007A33; }
+        h3 { text-align: left; margin-bottom: 10px; color: #004d1a; }
+
+        input, select {
+            width: 100%;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #007A33;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input::placeholder { color: #888; }
+
+        button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #007A33, #00cc66);
+            color: #fff;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #00591a, #00994d);
+        }
+
+        p { text-align: center; cursor: pointer; font-size: 14px; color: #007A33; }
+        p:hover { text-decoration: underline; }
+
+        #score {
+            background: rgba(0, 122, 51, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+            color: #004d1a;
+            white-space: pre-line;
+        }
+
+        #history p {
+            background: rgba(0, 122, 51, 0.05);
+            padding: 8px;
+            border-radius: 6px;
+            margin: 5px 0;
+            color: #004d1a;
+        }
+
+        .hidden { display: none; }
+
+        #logo {
+            display: block;
+            margin: 0 auto 15px auto;
+            width: 80px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage" class="container">
+    <img id="logo" src="https://via.placeholder.com/80x80.png?text=Babcock" alt="Babcock Logo">
+    <h2>Login</h2>
+    <input type="text" id="loginUser" placeholder="Username">
+    <input type="password" id="loginPass" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p onclick="showSignup()">Create account</p>
+</div>
+
+<!-- SIGNUP -->
+<div id="signupPage" class="container hidden">
+    <img id="logo" src="https://via.placeholder.com/80x80.png?text=Babcock" alt="Babcock Logo">
+    <h2>Sign Up</h2>
+    <input type="text" id="signupUser" placeholder="Username">
+    <input type="password" id="signupPass" placeholder="Password">
+    <button onclick="signup()">Sign Up</button>
+    <p onclick="showLogin()">Back to login</p>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardPage" class="container hidden">
+    <img id="logo" src="https://via.placeholder.com/80x80.png?text=Babcock" alt="Babcock Logo">
+    <h2>📊 Dashboard</h2>
+
+    <h3>Daily Health Input</h3>
+    <input type="number" id="temp" placeholder="Temperature (°C)">
+    <input type="number" id="energy" placeholder="Energy (1-5)">
+    <label>Headache?</label>
+    <select id="headache">
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+    </select>
+    <input type="number" id="sleep" placeholder="Hours of Sleep">
+    <input type="number" id="water" placeholder="Water Intake (litres)">
+    <select id="mood">
+        <option value="1">😊 Happy</option>
+        <option value="0.7">😐 Neutral</option>
+        <option value="0.4">😞 Sad</option>
+    </select>
+    <input type="number" id="screenTime" placeholder="Screen Time (hours)">
+    <button onclick="saveHealth()">Save</button>
+
+    <h3>Health Score</h3>
+    <p id="score"></p>
+
+    <h3>History</h3>
+    <div id="history"></div>
+
+    <h3>Weekly Health Graph</h3>
+    <canvas id="healthGraph" width="400" height="200"></canvas>
+
+    <button onclick="logout()">Logout</button>
+</div>
+
+<!-- THANK YOU PAGE -->
+<div id="thankYouPage" class="container hidden">
+    <img id="logo" src="https://via.placeholder.com/80x80.png?text=Babcock" alt="Babcock Logo">
+    <h2>🎉 Thank You!</h2>
+    <p>Your health data has been recorded successfully.</p>
+    <button onclick="showDashboard()">Back to Dashboard</button>
+</div>
+
+<script>
+function hideAll() {
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("signupPage").classList.add("hidden");
+    document.getElementById("dashboardPage").classList.add("hidden");
+    document.getElementById("thankYouPage").classList.add("hidden");
+}
+
+function showLogin() { hideAll(); document.getElementById("loginPage").classList.remove("hidden"); }
+function showSignup() { hideAll(); document.getElementById("signupPage").classList.remove("hidden"); }
+function showDashboard() { hideAll(); document.getElementById("dashboardPage").classList.remove("hidden"); displayHistory(); updateGraph(); }
+function showThankYou() { hideAll(); document.getElementById("thankYouPage").classList.remove("hidden"); }
+
+function signup() {
+    let user = document.getElementById("signupUser").value;
+    let pass = document.getElementById("signupPass").value;
+    localStorage.setItem(user, pass);
+    alert("Account created!");
+    showLogin();
+}
+
+function login() {
+    let user = document.getElementById("loginUser").value;
+    let pass = document.getElementById("loginPass").value;
+    let storedPass = localStorage.getItem(user);
+    if (storedPass === pass) {
+        localStorage.setItem("currentUser", user);
+        showDashboard();
+    } else { alert("Invalid login"); }
+}
+
+function logout() {
+    localStorage.removeItem("currentUser");
+    showLogin();
+}
+
+function saveHealth() {
+    let user = localStorage.getItem("currentUser");
+
+    let temp = Number(document.getElementById("temp").value);
+    let energy = Number(document.getElementById("energy").value);
+    let mood = Number(document.getElementById("mood").value);
+    let headache = document.getElementById("headache").value;
+    let sleep = Number(document.getElementById("sleep").value);
+    let water = Number(document.getElementById("water").value);
+    let screenTime = Number(document.getElementById("screenTime").value);
+
+    // Base score
+    let score =
+        (temp <= 37.5 ? 30 : 10) +
+        (energy * 10) +
+        (mood * 20) +
+        (sleep >= 7 ? 20 : 10) +
+        (water >= 2 ? 20 : 10);
+
+    if(headache === "yes") score -= 10;
+    if(screenTime > 4) score -= (screenTime - 4) * 2;
+
+    // CAP score 0-100
+    score = Math.max(0, Math.min(score, 100));
+
+    // 🧠 EXPLANATION SYSTEM (TRUST FEATURE)
+    let reasons = [];
+
+    if(temp > 37.5) reasons.push("High temperature");
+    if(energy < 3) reasons.push("Low energy");
+    if(mood < 1) reasons.push("Mood not optimal");
+    if(sleep < 7) reasons.push("Not enough sleep");
+    if(water < 2) reasons.push("Low water intake");
+    if(headache === "yes") reasons.push("Headache reported");
+    if(screenTime > 4) reasons.push("High screen time");
+
+    let explanation = reasons.length > 0 
+        ? "Factors affecting your score: " + reasons.join(", ") 
+        : "All health indicators are in a good range";
+
+    // 📊 CONFIDENCE LEVEL (BASED ON DATA COMPLETENESS)
+    let filledInputs = [temp, energy, mood, sleep, water, screenTime].filter(v => v > 0).length;
+
+    let confidence = "";
+    if(filledInputs >= 6) confidence = "High";
+    else if(filledInputs >= 4) confidence = "Medium";
+    else confidence = "Low";
+
+    // 💡 ADVICE
+    let advice = "";
+    if(score >= 80 && screenTime <= 4) advice = "✅ Excellent health! Keep maintaining your lifestyle.";
+    else if(score >= 60 && screenTime <= 4) advice = "🙂 You're doing okay, stay hydrated, rest well, and limit screen time.";
+    else if(score >= 40 || screenTime > 4) advice = "⚠️ Health needs attention. Improve sleep, daily habits, and reduce screen time.";
+    else advice = "🚨 Poor health detected. Rest, reduce screen time, and consider seeing a doctor.";
+
+    // 🛑 TRUST DISCLAIMER
+    let disclaimer = "⚠️ This is not a medical diagnosis. For professional advice, consult a doctor.";
+
+    let entry = { date: new Date().toLocaleDateString(), score: score };
+    let data = JSON.parse(localStorage.getItem(user + "_health")) || [];
+    data.push(entry);
+    localStorage.setItem(user + "_health", JSON.stringify(data));
+
+    document.getElementById("score").innerText =
+        "Score: " + score +
+        "\nConfidence Level: " + confidence +
+        "\n" + explanation +
+        "\nAdvice: " + advice +
+        "\n" + disclaimer;
+
+    // Clear inputs
+    document.getElementById("temp").value = "";
+    document.getElementById("energy").value = "";
+    document.getElementById("sleep").value = "";
+    document.getElementById("water").value = "";
+    document.getElementById("headache").value = "no";
+    document.getElementById("mood").value = "1";
+    document.getElementById("screenTime").value = "";
+
+    showThankYou();
+}
+
+function displayHistory() {
+    let user = localStorage.getItem("currentUser");
+    let data = JSON.parse(localStorage.getItem(user + "_health")) || [];
+    let div = document.getElementById("history");
+    div.innerHTML = "";
+    data.forEach(item => { div.innerHTML += `<p>${item.date} - Score: ${item.score}</p>`; });
+}
+
+function updateGraph() {
+    let user = localStorage.getItem("currentUser");
+    let data = JSON.parse(localStorage.getItem(user + "_health")) || [];
+    let labels = data.map(d => d.date);
+    let scores = data.map(d => d.score);
+
+    if(window.healthChart) window.healthChart.destroy();
+    window.healthChart = new Chart(document.getElementById("healthGraph"), {
+        type: 'line',
+        data: { labels: labels, datasets: [{ label: 'Health Score', data: scores, fill: true, backgroundColor: 'rgba(0, 122, 51, 0.2)', borderColor: '#007A33', tension: 0.3 }] },
+        options: { responsive: true, scales: { y: { min: 0, max: 100 } } }
+    });
+
+    // Weekly advice
+    let last7 = data.slice(-7);
+    if(last7.length > 0) {
+        let avg = last7.reduce((a,b)=>a+b.score,0)/last7.length;
+        let adviceText = "";
+        if(avg >= 80 && last7.every(d=>d.score>=80)) adviceText = "✅ Excellent this week! Keep up your habits.";
+        else if(avg >= 60) adviceText = "🙂 Good week, but can improve.";
+        else if(avg >= 40 || last7.some(d=>d.score<40)) adviceText = "⚠️ Needs attention. Reduce screen time and improve habits.";
+        else adviceText = "🚨 Poor health detected. Consider seeing a doctor.";
+        document.getElementById("score").innerText += "\nWeekly Advice: " + adviceText;
+    }
+}
+
+window.onload = function () {
+    let user = localStorage.getItem("currentUser");
+    if(user) showDashboard(); else showLogin();
+};
+</script>
+</body>
+</html>
